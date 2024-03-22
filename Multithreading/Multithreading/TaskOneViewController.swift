@@ -8,18 +8,32 @@
 import UIKit
 
 class TaskOneViewController: UIViewController {
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        for _ in (0..<10) {
-             let currentThread = Thread.detachNewThread
-            print("1, Current thread: \(String(describing: currentThread))")
-          }
-
-          for _ in (0..<10) {
-             let currentThread = Thread.current
-             print("2, Current thread: \(currentThread)")
-          }
+        
+        let phrasesService = PhrasesService()
+        
+        DispatchQueue.global().async {
+            for i in 0..<10 {
+                phrasesService.addPhrase("Phrase \(i)")
+            }
+        }
+        Thread.sleep(forTimeInterval: 1)
+        
+        DispatchQueue.global().async {
+        }
+    }
+    
+    actor PhrasesService {
+        var phrases: [String] = []
+        let semaphore = DispatchSemaphore(value: 1)
+        
+        func addPhrase(_ phrase: String)  {
+            semaphore.wait()
+            phrases.append(phrase)
+            semaphore.signal()
+        }
     }
 }
 

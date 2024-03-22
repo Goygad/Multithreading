@@ -7,28 +7,44 @@
 
 import UIKit
 
-//        class TaskSevenViewController: UIViewController {
-//             override func viewDidLoad() {
-//                      super.viewDidLoad()
-//                      print(2)
-//                      DispatchQueue.main.async {
-//                              print(3)
-////                          нужно поменять на async
-//                              DispatchQueue.main.async {
-//                                    print(5)
-//                              }
-//                       print(4)
-//                     }
-//                   print(6)
-//             }
-//        }
-//
-//        let vc = TaskSevenViewController()
-//        print(1)
-//        let view = vc.view
-//        print(7)   
-//}
+class TaskSevenViewController: UIViewController {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let service = ArrayAdditionService()
+        for i in 1...10 {
+            service.addElement(i)
+        }
+        service.cancelAddition()
+    }
+    
+    class ArrayAdditionService {
+        private var array = [Int]()
+        private var pendingWorkItems = [DispatchWorkItem]()
+        
+        func addElement(_ element: Int) {
+            let newWorkItem = DispatchWorkItem { [weak self] in
+                self?.array.append(element)
+                print("Элемент \(element) успешно добавлен в массив.")
+            }
+            
+            pendingWorkItems.append(newWorkItem)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                if newWorkItem.isCancelled == false {
+                    print("Done - \(element)")
+                }
+            }
+        }
+        
+        func cancelAddition() {
+            guard let lastWorkItem = pendingWorkItems.last else {
+                print("Нет операций для отмены.")
+                return
+            }
+            lastWorkItem.cancel()
+        }
+    }
+}
 
-//Когда мы обращаемся к view экземпляра класса, тем самым мы его "активируем"
-//и даем ход выполнению кода внутри
-//Скриншоты из плейграунда прикреплены

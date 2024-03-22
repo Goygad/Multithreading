@@ -8,31 +8,20 @@
 import UIKit
 
 class TaskEightViewController: UIViewController {
-
-        private lazy var name = "I love RM"
-    let lock = NSLock()
-
-           override func viewDidLoad() {
-               super.viewDidLoad()
-               
-               updateName()
-           }
-           
-           func updateName() {
-               DispatchQueue.global().async {
-                   self.lock.lock()
-                   print(self.name)
-                   print(Thread.current)
-                   self.lock.unlock()
-               }
-               
-               self.lock.lock()
-               print(self.name) 
-               self.lock.unlock()
-           }
+    
+    final class Post: Sendable {
     }
-  
-//Проблема в том что идет обращение к name из разных потоков, что приводит к неопределённому выводу
-//Data race in Multithreading.TaskEightViewController.name.getter : Swift.String at 0x111301000
-//указывает на обнаружение гонки данных(Data race)
+    
+    enum State1: Sendable {
+        case loading
+        case data(String)
+    }
+    
+    enum State2: Sendable {
+        case loading
+        case data(Post)
+    }
+    
+}
 
+//Нужно было прописать что Post тоже подписан на Sendable

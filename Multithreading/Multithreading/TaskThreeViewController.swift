@@ -11,32 +11,15 @@ class TaskThreeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Создаем и запускаем поток
-        let infinityThread = InfinityLoop()
-        infinityThread.start()
-        print(infinityThread.isExecuting)
-        sleep(5)
         
-        if infinityThread.counter == 5 {
-            infinityThread.cancel()
-        }
-        sleep(2)
+        let serialQueue = DispatchQueue(label: "com.example.myQueue", attributes: .concurrent)
         
-        print(infinityThread.isFinished)
-        
-        
-        
-        class InfinityLoop: Thread {
-            var counter = 0
-            
-            override func main() {
-                while counter < 30 && !isCancelled {
-                    counter += 1
-                    print(counter)
-                    InfinityLoop.sleep(forTimeInterval: 1)
-                }
+        serialQueue.async {
+            //            serialQueue.async {
+            serialQueue.sync {
+                print("This will never be printed.")
             }
         }
-        
     }
 }
+// Проблема deadLock, очередь блокирует саму себя

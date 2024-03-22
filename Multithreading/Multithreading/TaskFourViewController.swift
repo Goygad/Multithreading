@@ -12,35 +12,28 @@ class TaskFourViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Создаем и запускаем поток
-        let thread1 = ThreadprintDemon()
-        let thread2 = ThreadprintAngel()
+        var sharedResource = 0
+        let lock = NSLock()
         
-        // Меняем приоритеты
-        thread1.qualityOfService = .background
-        thread2.qualityOfService = .userInteractive
-        
-        thread1.start()
-        thread2.start()
-        
-    }
-    
-    class ThreadprintDemon: Thread {
-        override func main() {
-            for _ in (0..<100) {
-                print("1🤬")
+        DispatchQueue.global(qos: .background).async {
+            for _ in 1...100 {
+                lock.lock()
+                sharedResource += 1
+                lock.unlock()
             }
         }
-    }
-    class ThreadprintAngel: Thread {
-        override func main() {
-            for _ in (0..<100) {
-                print("2🥶")
+        
+        DispatchQueue.global(qos: .background).async {
+            for _ in 1...100 {
+                lock.lock()
+                sharedResource += 1
+                lock.unlock()
             }
         }
     }
 }
 
+// race condition
 
 
 

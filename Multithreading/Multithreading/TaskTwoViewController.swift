@@ -8,41 +8,48 @@
 import UIKit
 
 class TaskTwoViewController: UIViewController {
-
+    
     override func viewDidLoad() {
-            super.viewDidLoad()
+        super.viewDidLoad()
         
-            let timer = TimerThread(duration: 10)
-            timer.start()
+        let asyncWorker = AsyncWorker()
+        
+        asyncWorker.doJobs(postNumbers: 1, 2, 3, 4, 5) { posts in
+            print(Thread.current)
+            print(posts.map { $0.id })
+        }
     }
-
-
-    class TimerThread: Thread {
-        private var timerDuration: Int
-        private var timer: Timer!
-        
-        init(duration: Int) {
-            self.timerDuration = duration
-        }
-        
-        override func main() {
-            timer = Timer(timeInterval: 1.0, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
-                        
-            RunLoop.current.add(timer, forMode: .default)
+    
+    class AsyncWorker {
+        func doJobs(postNumbers: Int..., completion: @escaping ([Post]) -> Void) {
+            var posts = [Post]()
             
-            RunLoop.current.run()
-        }
-        
-        @objc func updateTimer() {
-            if timerDuration > 0 {
-                print("Осталось \(timerDuration) секунд")
-                timerDuration -= 1
-            } else {
-                print("Время истекло!")
-                
-                timer.invalidate()
-                CFRunLoopStop(CFRunLoopGetCurrent())
+            let group = DispatchGroup()
+            
+            for i in postNumbers {
+                group.enter()
+                URLSession.shared.dataTask(with: URLRequest(url: URL(string: "https://jsonplaceholder.typicode.com/todos/\(i)")!)) { data, response, error in
+                    guard let data = data else {
+                        return
+                    }
+                    if let post = try? JSONDecoder().decode(Post.self, from: data) {
+                        posts.append(post)
+                        group.leave()
+                    }
+                }
+                .resume()
+            }
+            
+            group.notify(queue: .main) {
+                completion(posts)
             }
         }
+    }
+    
+    struct Post: Codable {
+        var userId: Int
+        var id: Int
+        var title: String
+        var completed: Bool
     }
 }
