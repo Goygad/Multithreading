@@ -8,22 +8,30 @@
 import UIKit
 
 class TaskSixViewController: UIViewController {
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
         
-        super.viewDidLoad()
+        var networkService = NetworkService()
         
-        print("A")
-        
-        DispatchQueue.main.async {
-            print("B")
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            
+            Task {
+                do {
+                    print(try await fetchMessages())
+                } catch {
+                    print(error)
+                }
+            }
         }
         
-        print("C")
+        func fetchMessages() async throws -> [Message] {
+            try await withCheckedThrowingContinuation { continutaion in
+                networkService.fetchMessages { messages in
+                    if messages.isEmpty {
+                        continutaion.resume(throwing: "Error" as! Error)
+                    } else {
+                        continutaion.resume(returning: messages)
+                    }
+                }
+            }
+        }
     }
-}
-    
-// Выведется А С В потому, что код внутри DispatchQueue.main.async будет выполнен после завершения основного потока
-
-

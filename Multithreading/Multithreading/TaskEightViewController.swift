@@ -8,31 +8,34 @@
 import UIKit
 
 class TaskEightViewController: UIViewController {
-
-        private lazy var name = "I love RM"
-    let lock = NSLock()
-
-           override func viewDidLoad() {
-               super.viewDidLoad()
-               
-               updateName()
-           }
-           
-           func updateName() {
-               DispatchQueue.global().async {
-                   self.lock.lock()
-                   print(self.name)
-                   print(Thread.current)
-                   self.lock.unlock()
-               }
-               
-               self.lock.lock()
-               print(self.name) 
-               self.lock.unlock()
-           }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        Task {
+            print(await printMessage())
+        }
     }
-  
-//Проблема в том что идет обращение к name из разных потоков, что приводит к неопределённому выводу
-//Data race in Multithreading.TaskEightViewController.name.getter : Swift.String at 0x111301000
-//указывает на обнаружение гонки данных(Data race)
-
+    
+    func printMessage() async {
+        let string = await withTaskGroup(of: String.self) { group -> String in
+            
+            let strings = ["Hello", "My", "Road", "Map", "Group"]
+            
+            for string in strings {
+                group.addTask {
+                    string
+                }
+            }
+            
+            var collected = [String]()
+            
+            for await value in group {
+                collected.append(value)
+            }
+            
+            return collected.joined(separator: " ")
+        }
+        print(string)
+    }
+}

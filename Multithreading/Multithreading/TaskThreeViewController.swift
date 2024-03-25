@@ -8,35 +8,21 @@
 import UIKit
 
 class TaskThreeViewController: UIViewController {
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Создаем и запускаем поток
-        let infinityThread = InfinityLoop()
-        infinityThread.start()
-        print(infinityThread.isExecuting)
-        sleep(5)
-        
-        if infinityThread.counter == 5 {
-            infinityThread.cancel()
-        }
-        sleep(2)
-        
-        print(infinityThread.isFinished)
-        
-        
-        
-        class InfinityLoop: Thread {
-            var counter = 0
+
+        override func viewDidLoad() {
+                super.viewDidLoad()
             
-            override func main() {
-                while counter < 30 && !isCancelled {
-                    counter += 1
-                    print(counter)
-                    InfinityLoop.sleep(forTimeInterval: 1)
+            print("Task 1 is finished")
+           
+            Task.detached(priority: .userInitiated)  {
+                for i in 0..<50 {
+                    print(i)
                 }
+                print("Task 2 is finished")
+                print(Thread.current)
             }
+            
+            print("Task 3 is finished")
         }
-        
     }
-}
+// Разницы при выводе кода выявлено не было

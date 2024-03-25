@@ -7,29 +7,49 @@
 
 import UIKit
 
-class TaskFiveViewController: UIViewController {
+
+ class TaskFiveViewController: UIViewController {
     
-    private var name = "Введите имя"
+    var networkService = NetworkService()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        updateName()
-        
-    }
-    private let lockQueue = DispatchQueue(label: "name.lock.queue")
-    func updateName() {
-        lockQueue.async {
-            self.name = "I love RM"
-            print(Thread.current)
-            print(self.name)
+        Task {
+            print(await fetchMessages())
         }
-        print ("first \(self.name)")
+    }
+    
+    func fetchMessages() async -> [Message] {
+        await withCheckedContinuation { continutaion in
+            networkService.fetchMessages { messages in
+                continutaion.resume(returning: messages)
+            }
+        }
     }
 }
 
-// Такой результат в консоли (при DispatchQueue.global().async) - результат непредсказуем, из-за ансинхронности
-// Такой результат в консоли (при DispatchQueue.global().sync) - потому что поток, который вызывает updateName(), будет заблокирован до тех пор, пока блок, переданный в sync, не будет выполнен
+struct Message: Decodable, Identifiable {
+    let id: Int
+    let from: String
+    let message: String
+}
 
-
-
-
+class NetworkService {
+    
+    func fetchMessages(completion: @escaping ([Message]) -> Void) {
+        let url = URL(string: "https://hws.dev/user-messages.json")!
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let data = data {
+                if let messages = try? JSONDecoder().decode([Message].self, from: data) {
+                    completion(messages)
+                    return
+                }
+            }
+            
+            completion([])
+        }
+        .resume()
+    }
+}

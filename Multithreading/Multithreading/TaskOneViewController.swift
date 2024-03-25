@@ -8,18 +8,18 @@
 import UIKit
 
 class TaskOneViewController: UIViewController {
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        for _ in (0..<10) {
-             let currentThread = Thread.detachNewThread
-            print("1, Current thread: \(String(describing: currentThread))")
-          }
-
-          for _ in (0..<10) {
-             let currentThread = Thread.current
-             print("2, Current thread: \(currentThread)")
-          }
+        
+        override func viewDidLoad() {
+                super.viewDidLoad()
+            
+            print(1)
+            Task {
+                print(2)
+            }
+            print(3)
+        }
     }
-}
+// Печать: 1, 3, 2 тк 2 с основного потока отправляется в очередь
+// Ничего не поменялось тк по умолчанию Task {
+// Выполняется асинхронно в основном потоке }
 
